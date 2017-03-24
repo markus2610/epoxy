@@ -1,0 +1,84 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'me.tatarka.retrolambda'
+
+buildscript {
+  ext.kotlin_version = '1.1.1'
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    classpath 'me.tatarka:gradle-retrolambda:3.5.0'
+
+    // NOTE: Do not place your application dependencies here; they belong
+    // in the individual module build.gradle files
+  }
+}
+
+//buildscript {
+//  repositories {
+//    mavenCentral()
+//  }
+//
+//  dependencies {
+//    classpath 'me.tatarka:gradle-retrolambda:3.5.0'
+//  }
+//}
+
+repositories {
+  // For retrolambda
+  mavenCentral()
+}
+
+android {
+  compileSdkVersion rootProject.COMPILE_SDK_VERSION
+  buildToolsVersion rootProject.ANDROID_BUILD_TOOLS_VERSION
+
+  // For retrolambda
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  defaultConfig {
+    applicationId "com.airbnb.android.epoxysample"
+    minSdkVersion rootProject.MIN_SDK_VERSION
+    targetSdkVersion rootProject.TARGET_SDK_VERSION
+    versionCode 1
+    versionName "1.0"
+  }
+}
+project.android.buildTypes.all { buildType ->
+  buildType.javaCompileOptions.annotationProcessorOptions.arguments =
+      [
+          validateEpoxyModelUsage     : String.valueOf(buildType.name == 'debug'),
+          requireHashCodeInEpoxyModels: "true",
+          requireAbstractEpoxyModels  : "true"
+      ]
+}
+
+/* Forces all transitive deps listed to our version. */
+configurations.all { strategy ->
+  strategy.resolutionStrategy.force rootProject.deps.androidCardView, rootProject.deps.junit
+}
+
+kapt {
+  generateStubs = true
+}
+
+
+dependencies {
+  compile project(':epoxy-adapter')
+  compile project(':epoxy-annotations')
+  kapt project(':epoxy-processor')
+
+  compile rootProject.deps.butterknifeLibrary
+  kapt rootProject.deps.butterknifeCompiler
+
+  compile rootProject.deps.androidCardView
+
+  testCompile rootProject.deps.junit
+
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
